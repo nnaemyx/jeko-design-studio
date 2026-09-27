@@ -62,3 +62,13 @@
     }
   }
 }
+
+@layer components {
+  .contact-hero-grid {
+    background-image: url("/images/contact-grid-vertical.svg"),
+      url("/images/contact-grid-horizontal.svg");
+    background-position: center;
+    background-size: cover, cover;
+    background-repeat: no-repeat;
+  }
+}

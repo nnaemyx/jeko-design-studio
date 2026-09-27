@@ -10,7 +10,7 @@ export default function ContactCtaSection() {
       aria-labelledby="contact-title"
       className="scroll-mt-[110px] bg-paper px-5 pb-2 pt-[72px] text-center text-ink"
     >
-      <div className={`${scrollRevealClassName} mx-auto flex max-w-[720px] flex-col items-center`}>
+      <div className={`${scrollRevealClassName} mx-auto flex max-w-[720px] flex-col items-center max-md:!animate-none`}>
         <p className="font-body text-[32px] leading-8 tracking-[-0.08em] text-ink-muted">
           Have a Business problem?
         </p>

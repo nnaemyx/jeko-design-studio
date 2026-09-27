@@ -13,6 +13,21 @@ import ArrowRightLight from "../assets/icons/arrow-right-light.svg";
 
 const projectIntervalMs = 2000;
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+const mobilePresentationQuery = "(max-width: 767px)";
+
+function subscribeToMobilePresentation(callback: () => void) {
+  const mediaQuery = window.matchMedia(mobilePresentationQuery);
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getMobilePresentation() {
+  return window.matchMedia(mobilePresentationQuery).matches;
+}
+
+function getServerMobilePresentation() {
+  return false;
+}
 
 function subscribeToMotionPreference(callback: () => void) {
   const mediaQuery = window.matchMedia(reducedMotionQuery);
@@ -36,21 +51,36 @@ export default function FeaturedWorksSection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [sequenceStarted, setSequenceStarted] = useState(false);
   const [sequenceComplete, setSequenceComplete] = useState(false);
+  const [loadedProjectImages, setLoadedProjectImages] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [failedProjectImages, setFailedProjectImages] = useState<Set<string>>(
+    () => new Set(),
+  );
   const prefersReducedMotion = useSyncExternalStore(
     subscribeToMotionPreference,
     getReducedMotionPreference,
     getServerMotionPreference,
   );
+  const isMobilePresentation = useSyncExternalStore(
+    subscribeToMobilePresentation,
+    getMobilePresentation,
+    getServerMobilePresentation,
+  );
   const visibleProjects = projects.filter(
     (project) => project.category === activeCategory,
   );
   const activeProject = visibleProjects[activeIndex];
+  const activeProjectImageReady = activeProject
+    ? loadedProjectImages.has(activeProject.image) ||
+      failedProjectImages.has(activeProject.image)
+    : false;
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section || visibleProjects.length === 0) return;
 
-    if (prefersReducedMotion) return;
+    if (isMobilePresentation || prefersReducedMotion) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -64,10 +94,18 @@ export default function FeaturedWorksSection() {
     );
     observer.observe(section);
     return () => observer.disconnect();
-  }, [activeCategory, prefersReducedMotion, visibleProjects.length]);
+  }, [activeCategory, isMobilePresentation, prefersReducedMotion, visibleProjects.length]);
 
   useEffect(() => {
-    if (!sequenceStarted || sequenceComplete || prefersReducedMotion) return;
+    if (
+      isMobilePresentation ||
+      !sequenceStarted ||
+      sequenceComplete ||
+      prefersReducedMotion ||
+      !activeProjectImageReady
+    ) {
+      return;
+    }
 
     const timeout = window.setTimeout(() => {
       if (activeIndex >= visibleProjects.length - 1) {
@@ -80,6 +118,8 @@ export default function FeaturedWorksSection() {
     return () => window.clearTimeout(timeout);
   }, [
     activeIndex,
+    activeProjectImageReady,
+    isMobilePresentation,
     prefersReducedMotion,
     sequenceComplete,
     sequenceStarted,
@@ -88,7 +128,7 @@ export default function FeaturedWorksSection() {
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section) return;
+    if (!section || isMobilePresentation) return;
 
     const preventScrollWhilePresenting = (event: WheelEvent | TouchEvent) => {
       if (!sequenceStarted || sequenceComplete) return;
@@ -122,7 +162,7 @@ export default function FeaturedWorksSection() {
       document.removeEventListener("touchmove", preventScrollWhilePresenting);
       window.removeEventListener("keydown", preventKeyboardScroll);
     };
-  }, [sequenceComplete, sequenceStarted]);
+  }, [isMobilePresentation, sequenceComplete, sequenceStarted]);
 
   function selectCategory(category: ProjectCategory) {
     setActiveCategory(category);
@@ -151,6 +191,97 @@ export default function FeaturedWorksSection() {
     setActiveIndex((index) => index + 1);
   }
 
+  if (isMobilePresentation) {
+    return (
+      <section
+        id="work"
+        aria-labelledby="work-title"
+        className="bg-paper px-5 pb-12 pt-10 text-ink"
+      >
+        <div className="mx-auto max-w-[1200px]">
+          <p className="font-body text-base leading-5 tracking-[-0.04em] text-ink-muted">
+            Featured Works
+          </p>
+          <h2
+            id="work-title"
+            className="mt-4 max-w-[370px] font-display text-[clamp(34px,9vw,44px)] leading-[1.04] tracking-[-0.07em]"
+          >
+            <span>Built for Impact, </span>
+            <span className="text-ink-muted">Designed with purpose</span>
+          </h2>
+
+          <div
+            role="group"
+            aria-label="Filter projects by category"
+            className="mt-7 flex flex-wrap items-center gap-x-1 gap-y-2"
+          >
+            {projectCategories.map((category) => {
+              const selected = category === activeCategory;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => selectCategory(category)}
+                  className={`min-h-11 rounded-sm px-3 font-body text-[13px] tracking-[-0.035em] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint ${selected ? "bg-mint text-paper" : "text-ink hover:bg-mint/10"}`}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
+
+          <a
+            href="#all-projects-mobile"
+            className="group mt-4 inline-flex min-h-11 items-center gap-2 font-action text-base tracking-[-0.04em] underline underline-offset-4 transition-colors hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint"
+          >
+            <span>View all projects</span>
+            <ArrowRightDark
+              aria-hidden="true"
+              className="size-6 transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </a>
+
+          <div
+            id="all-projects-mobile"
+            aria-label="Featured case studies"
+            className="mt-5 flex flex-col gap-4"
+          >
+            {visibleProjects.length > 0 ? (
+              visibleProjects.map((project, index) => (
+                <article
+                  key={project.title}
+                  className="overflow-hidden rounded-xl bg-ink"
+                >
+                  <a
+                    href={`mailto:cd.jeko.co@gmail.com?subject=${encodeURIComponent(`Request ${project.title} case study`)}`}
+                    aria-label={`Ask JEKO about the ${project.title} case study`}
+                    className="block focus-visible:outline-2 focus-visible:outline-offset-[-5px] focus-visible:outline-mint"
+                  >
+                    <Image
+                      src={project.image}
+                      alt={project.imageAlt}
+                      width={1200}
+                      height={600}
+                      sizes="(max-width: 767px) calc(100vw - 40px), 1200px"
+                      priority={index === 0}
+                      unoptimized={project.image.endsWith(".svg")}
+                      className="aspect-[2/1] h-auto w-full object-cover"
+                    />
+                  </a>
+                </article>
+              ))
+            ) : (
+              <p className="py-6 font-body text-base leading-relaxed text-ink-muted">
+                More work in this discipline is on its way.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       ref={sectionRef}
@@ -159,7 +290,7 @@ export default function FeaturedWorksSection() {
       tabIndex={-1}
       className="scroll-mt-[110px] bg-paper pb-12 pt-10 text-ink md:pb-16 md:pt-[39px]"
     >
-      <div className="mx-auto flex min-h-[calc(100svh-170px)] max-w-[1200px] flex-col px-5 md:px-0 max-md:min-h-[calc(100svh-92px)]">
+      <div className="mx-auto flex min-h-[calc(100svh-170px)] max-w-[1200px] flex-col px-5 sm:px-6 lg:px-0 max-md:min-h-0">
         <div className="grid shrink-0 gap-8 lg:grid-cols-[464px_1fr] lg:gap-4">
           <div>
             <p className="font-body text-[32px] leading-8 tracking-[-0.08em] text-ink-muted">
@@ -217,7 +348,7 @@ export default function FeaturedWorksSection() {
             <article
               key={activeProject.title}
               aria-label={`${activeIndex + 1} of ${visibleProjects.length}: ${activeProject.title}`}
-              className="group relative h-[min(62vh,600px)] min-h-[360px] animate-[fade-up_400ms_ease-out_both] overflow-hidden rounded-2xl max-md:h-[min(50vh,460px)] max-md:min-h-[300px]"
+              className="group relative h-[min(62vh,600px)] min-h-[360px] animate-[fade-up_400ms_ease-out_both] overflow-hidden rounded-2xl max-md:h-[min(50vh,460px)] max-md:min-h-[360px]"
             >
               <Image
                 src={activeProject.image}
@@ -226,8 +357,29 @@ export default function FeaturedWorksSection() {
                 height={600}
                 sizes="(max-width: 768px) calc(100vw - 40px), 1200px"
                 priority={activeProject.title === "Kacxs Energy"}
+                unoptimized={activeProject.image.endsWith(".svg")}
+                onLoad={() => {
+                  setLoadedProjectImages((loaded) =>
+                    new Set(loaded).add(activeProject.image),
+                  );
+                }}
+                onError={() => {
+                  setFailedProjectImages((failed) =>
+                    new Set(failed).add(activeProject.image),
+                  );
+                }}
                 className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.01]"
               />
+              {failedProjectImages.has(activeProject.image) && (
+                <div
+                  role="status"
+                  className="absolute inset-0 flex items-center justify-center bg-deep-teal px-6 text-center text-paper"
+                >
+                  <span className="font-display text-4xl tracking-[-0.06em]">
+                    {activeProject.title}
+                  </span>
+                </div>
+              )}
               {activeProject.categoryLabel ? (
                 <div className="absolute bottom-[6.7%] left-[3.3%] flex w-[min(36%,430px)] flex-col rounded-lg bg-deep-teal p-5 text-paper sm:p-8 max-md:bottom-[4%] max-md:left-[4%] max-md:w-[min(86%,400px)] max-md:p-4">
                   <span className="w-fit rounded-sm bg-mint px-4 py-2 font-body text-sm leading-5 tracking-[-0.03em] sm:text-base">

@@ -7,27 +7,9 @@ export default function ContactHeroSection() {
   return (
     <section
       aria-labelledby="contact-hero-title"
-      className="relative isolate mx-5 mt-5 overflow-hidden rounded-2xl bg-paper px-5 text-ink md:px-0"
+      className="contact-hero-grid relative isolate mx-5 mt-5 overflow-hidden rounded-2xl bg-paper px-5 text-ink md:px-0"
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-        <Image
-          src="/images/contact-grid-vertical.svg"
-          alt=""
-          width={1391}
-          height={679}
-          priority
-          className="absolute inset-0 h-full w-full object-cover object-center"
-        />
-        <Image
-          src="/images/contact-grid-horizontal.svg"
-          alt=""
-          width={1400}
-          height={679}
-          priority
-          className="absolute inset-0 h-full w-full object-cover object-center"
-        />
-      </div>
-      <div className="relative z-10 mx-auto grid min-h-[679px] max-w-[1200px] items-center gap-10 pt-[186px] pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(390px,465px)] lg:gap-[76px] max-md:min-h-0 max-md:pt-40 max-md:pb-11"> 
+      <div className="relative z-10 mx-auto grid min-h-[679px] max-w-[1200px] items-center gap-10 pt-[186px] pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(390px,465px)] lg:gap-[76px] max-md:min-h-0 max-md:pt-40 max-md:pb-11">
         <div className="max-w-[660px]">
           <h1
             id="contact-hero-title"

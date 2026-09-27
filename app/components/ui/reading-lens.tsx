@@ -13,7 +13,7 @@ type ReadingLensProps = {
 };
 
 type HeadingWithId = {
-  id?: string;
+  id?: string | null;
   "aria-hidden"?: boolean;
 };
 
@@ -26,7 +26,7 @@ export default function ReadingLens({
 }: ReadingLensProps) {
   const mirroredHeading = isValidElement(children)
     ? cloneElement(children as ReactElement<HeadingWithId>, {
-        id: undefined,
+        id: null,
         "aria-hidden": true,
       })
     : children;

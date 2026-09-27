@@ -11,9 +11,25 @@ import {
 
 import { testimonials } from "../data/landing-page";
 import { scrollRevealClassName } from "../lib/tailwind-classes";
+import ArrowRightDark from "../assets/icons/arrow-right-dark.svg";
 
 const desktopQuery = "(min-width: 768px)";
+const mobileQuery = "(max-width: 767px)";
 const autoplayIntervalMs = 2000;
+
+function subscribeToMobileViewport(callback: () => void) {
+  const mediaQuery = window.matchMedia(mobileQuery);
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getMobileViewport() {
+  return window.matchMedia(mobileQuery).matches;
+}
+
+function getServerMobileViewport() {
+  return false;
+}
 
 function subscribeToViewport(callback: () => void) {
   const mediaQuery = window.matchMedia(desktopQuery);
@@ -37,13 +53,21 @@ export default function TestimonialsSection() {
   const [isPaused, setIsPaused] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const isMobile = useSyncExternalStore(
+    subscribeToMobileViewport,
+    getMobileViewport,
+    getServerMobileViewport,
+  );
   const slidesPerView = useSyncExternalStore(
     subscribeToViewport,
     getSlidesPerView,
     getServerSlidesPerView,
   );
   const finalIndex = Math.max(0, testimonials.length - slidesPerView);
-  const firstVisibleIndex = Math.min(activeIndex, finalIndex);
+  const mobileCarouselOffset = Math.max(0, testimonials.length - 2);
+  const firstVisibleIndex = isMobile
+    ? (activeIndex + mobileCarouselOffset) % testimonials.length
+    : Math.min(activeIndex, finalIndex);
   const lastVisibleIndex = Math.min(
     testimonials.length,
     firstVisibleIndex + slidesPerView,
@@ -102,6 +126,9 @@ export default function TestimonialsSection() {
 
   function moveByOneSlide(direction: -1 | 1) {
     setActiveIndex((index) => {
+      if (isMobile) {
+        return (index + direction + testimonials.length) % testimonials.length;
+      }
       if (direction === 1) return index >= finalIndex ? 0 : index + 1;
       return index <= 0 ? finalIndex : index - 1;
     });
@@ -146,12 +173,12 @@ export default function TestimonialsSection() {
           setIsPaused(false);
         }
       }}
-      className="scroll-mt-[110px] bg-paper pb-[87px] pt-12 text-ink md:pb-[87px] md:pt-[60px]"
+      className="scroll-mt-[110px] bg-paper pb-[64px] pt-12 text-ink md:pb-[87px] md:pt-[60px] max-md:!animate-none"
     >
-      <div className={`${scrollRevealClassName} mx-auto mb-10 grid max-w-[1200px] gap-5 px-5 md:mb-10 md:grid-cols-[1fr_1fr] md:items-center md:gap-8 md:px-0`}>
+      <div className={`${scrollRevealClassName} mx-auto mb-10 grid max-w-[1200px] gap-5 px-5 md:mb-10 md:grid-cols-[1fr_1fr] md:items-center md:gap-8 xl:px-0 max-md:!animate-none max-md:mb-8 max-md:gap-3`}>
         <h2
           id="testimonials-title"
-          className="font-display text-[clamp(42px,4.45vw,64px)] leading-none tracking-[-0.08em]"
+          className="font-display text-[clamp(42px,4.45vw,64px)] leading-none tracking-[-0.08em] max-md:text-[clamp(30px,8vw,36px)] max-md:leading-[1.06] max-md:tracking-[-0.065em]"
         >
           Our Clients Remarks
         </h2>
@@ -172,7 +199,7 @@ export default function TestimonialsSection() {
         onPointerCancel={() => {
           swipeStartXRef.current = null;
         }}
-        className={`${scrollRevealClassName} mx-5 overflow-hidden rounded-2xl bg-ink text-paper touch-pan-y focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint`}
+        className={`${scrollRevealClassName} mx-5 overflow-hidden rounded-2xl bg-ink text-paper touch-pan-y focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint max-md:mx-5 max-md:rounded-xl max-md:!animate-none`}
       >
         <div
           className="flex transition-transform duration-700 ease-in-out motion-reduce:transition-none"
@@ -187,7 +214,7 @@ export default function TestimonialsSection() {
               role="group"
               aria-roledescription="slide"
               aria-label={`${index + 1} of ${testimonials.length}`}
-              className={`flex min-w-0 shrink-0 snap-start flex-col justify-between px-7 py-9 min-h-[390px] md:px-12 md:py-12 md:min-h-[513px] ${index % 2 === 1 ? "md:border-l md:border-paper/80" : ""}`}
+              className={`flex min-w-0 shrink-0 snap-start flex-col justify-between px-7 py-9 min-h-[390px] md:px-12 md:py-12 md:min-h-[513px] max-md:min-h-[390px] max-md:px-6 max-md:py-8 ${index % 2 === 1 ? "md:border-l md:border-paper/80" : ""}`}
               style={{ flexBasis: `${100 / testimonials.length}%` }}
             >
               <div>
@@ -210,6 +237,28 @@ export default function TestimonialsSection() {
             </article>
           ))}
         </div>
+      </div>
+
+      <div className="mx-5 mt-4 flex items-center justify-end gap-3 md:hidden" role="group" aria-label="Client remarks controls">
+        <span className="mr-auto font-body text-sm text-ink-muted" aria-live="polite">
+          {firstVisibleIndex + 1} / {finalIndex + 1}
+        </span>
+        <button
+          type="button"
+          aria-label="Previous client remark"
+          onClick={() => moveByOneSlide(-1)}
+          className="inline-flex size-11 items-center justify-center rounded-full border border-ink/20 transition-colors hover:border-mint hover:bg-mint hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+        >
+          <ArrowRightDark aria-hidden="true" className="size-5 rotate-180" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next client remark"
+          onClick={() => moveByOneSlide(1)}
+          className="inline-flex size-11 items-center justify-center rounded-full border border-ink/20 transition-colors hover:border-mint hover:bg-mint hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+        >
+          <ArrowRightDark aria-hidden="true" className="size-5" />
+        </button>
       </div>
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">

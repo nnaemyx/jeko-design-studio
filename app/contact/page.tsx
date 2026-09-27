@@ -57,7 +57,7 @@ export default function ContactPage() {
                 />
                 <a
                   href="mailto:cd.jeko.co@gmail.com"
-                  className="whitespace-nowrap font-body text-xl font-light text-paper transition-colors hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint md:text-2xl"
+                  className="break-all font-body text-lg font-light text-paper transition-colors hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint sm:whitespace-nowrap md:text-2xl"
                 >
                   <span className="text-mint">Email:</span> cd.jeko.co@gmail.com
                 </a>

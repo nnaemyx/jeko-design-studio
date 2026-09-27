@@ -8,7 +8,7 @@ export default function AboutProjectSection() {
       aria-labelledby="about-project-title"
       className={`${scrollRevealClassName} min-h-[480px] scroll-mt-[110px] bg-paper px-5 py-14 text-ink md:px-10 md:py-20`}
     >
-      <div className="mx-auto grid max-w-[1200px] gap-10 md:grid-cols-[minmax(0,1fr)_407px] md:items-start md:gap-[70px]">
+      <div className="mx-auto grid max-w-[1200px] gap-10 lg:grid-cols-[minmax(0,1fr)_407px] lg:items-start lg:gap-[70px]">
         <div>
           <p className="font-body text-[28px] leading-8 tracking-[-0.08em] text-ink-muted md:text-[32px]">
             Start a project

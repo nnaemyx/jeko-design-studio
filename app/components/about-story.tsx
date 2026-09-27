@@ -6,7 +6,7 @@ export default function AboutStory() {
   return (
     <section
       aria-labelledby="about-story-title"
-      className={`${scrollRevealClassName} mx-auto grid max-w-[1200px] gap-10 px-5 py-10 md:grid-cols-[minmax(0,0.77fr)_minmax(0,1fr)] md:gap-[49px] md:px-0 md:py-10`}
+      className={`${scrollRevealClassName} mx-auto grid max-w-[1200px] gap-10 px-5 py-10 md:grid-cols-[minmax(0,0.77fr)_minmax(0,1fr)] md:gap-[49px] md:py-10 xl:px-0`}
     >
       <div className="flex flex-col gap-5">
         <div>

@@ -69,12 +69,12 @@ export default function AboutValuesCarousel() {
           setIsPaused(false);
         }
       }}
-      className={`${scrollRevealClassName} relative mx-5 mb-5 h-[460px] overflow-hidden rounded-2xl bg-ink px-5 py-14 text-center text-paper md:mx-5 md:h-[496px] md:px-12 md:py-20`}
+      className={`${scrollRevealClassName} relative mx-5 mb-5 min-h-[460px] overflow-hidden rounded-2xl bg-ink px-5 py-14 text-center text-paper md:mx-5 md:min-h-[496px] md:px-12 md:py-20`}
     >
       <div
         key={activeSlide.id}
         aria-live={isPaused ? "polite" : "off"}
-        className="mx-auto flex h-[300px] max-w-[960px] flex-col items-center justify-center animate-[slide-in_450ms_ease-out_both] motion-reduce:animate-none"
+        className="mx-auto flex min-h-[300px] max-w-[960px] flex-col items-center justify-center animate-[slide-in_450ms_ease-out_both] motion-reduce:animate-none"
       >
         <h2 className="font-body text-[28px] leading-8 tracking-[-0.08em] text-paper md:text-[32px]">
           {activeSlide.label}

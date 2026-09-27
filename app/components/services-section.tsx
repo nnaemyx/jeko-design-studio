@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 import { services } from "../data/landing-page";
@@ -14,20 +16,23 @@ export default function ServicesSection() {
       aria-labelledby="services-title"
       className="scroll-mt-[110px] bg-paper text-ink"
     >
-      <div className={`${scrollRevealClassName} mx-auto max-w-[1200px] px-5 pb-[62px] pt-20 md:px-0`}>
+      <div className={`${scrollRevealClassName} mx-auto max-w-[1200px] px-5 pb-[62px] pt-20 sm:px-6 xl:px-0 max-md:!animate-none max-md:pb-20 max-md:pt-12`}>
         <ReadingLens className="mx-auto max-w-[1200px]">
           <h1
             id="services-title"
-            className="mx-auto max-w-[1088px] text-center font-display text-[clamp(42px,6.67vw,96px)] font-semibold leading-[0.96] tracking-[-0.08em]"
+            className="mx-auto w-full max-w-[1088px] text-center font-display text-[clamp(40px,6.25vw,96px)] font-semibold leading-[0.96] tracking-[-0.08em] max-md:text-[clamp(25px,7vw,34px)] max-md:leading-[1.08] max-md:tracking-[-0.065em]"
           >
             <span className="text-ink-muted">JEKO is a strategic </span>
             <span>creative</span>
             <br className="hidden md:block" />
+            <br className="md:hidden" />
             <span>partner </span>
             <span className="text-ink-muted">for businesses that</span>
             <br className="hidden md:block" />
+            <br className="md:hidden" />
             <span className="text-ink-muted">want their brand to</span>
             <br className="hidden md:block" />
+            <br className="md:hidden" />
             <span className="inline-flex bg-[#02040F33] items-center justify-center whitespace-nowrap">
               <Image
                 src="/images/services-marker-left.svg"
@@ -52,27 +57,27 @@ export default function ServicesSection() {
           </h1>
         </ReadingLens>
 
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-3 sm:mt-20">
+        <div className="mt-16 flex flex-wrap items-center justify-center gap-3 sm:mt-20 max-md:mt-12 max-md:flex-col max-md:gap-5">
           <ArrowTextLink href="#work">Explore our results</ArrowTextLink>
           <ProjectCta href={projectEmail} />
         </div>
 
-        <div className="mt-24 grid gap-8 md:mt-[108px] md:grid-cols-[1.45fr_1fr] md:items-end md:gap-[87px]">
+        <div className="mt-24 grid gap-8 md:mt-[108px] md:grid-cols-[1.45fr_1fr] md:items-end md:gap-[87px] max-md:mt-16 max-md:gap-4">
           <div>
-            <p className="font-body text-[32px] leading-8 tracking-[-0.08em] text-ink-muted">
+            <p className="font-body text-[32px] leading-8 tracking-[-0.08em] text-ink-muted max-md:text-2xl max-md:leading-tight">
               Our Services
             </p>
-            <h2 className="mt-5 font-display text-[clamp(38px,3.34vw,48px)] leading-none tracking-[-0.08em] text-ink">
+            <h2 className="mt-5 font-display text-[clamp(38px,3.34vw,48px)] leading-none tracking-[-0.08em] text-ink max-md:mt-3 max-md:text-[clamp(22px,5.8vw,26px)] max-md:leading-[1.08] max-md:tracking-[-0.065em]">
               Where Strategy becomes design
             </h2>
           </div>
-          <p className="max-w-[477px] font-body text-xl leading-[1.3] tracking-[-0.04em] text-ink-muted">
+          <p className="max-w-[477px] font-body text-xl leading-[1.3] tracking-[-0.04em] text-ink-muted max-md:text-lg max-md:leading-[1.4]">
             Transforming concepts into tangible success with expertise and
             dedication, every step of the way.
           </p>
         </div>
 
-        <div className="relative ml-[3px] mt-14 grid w-[calc(100%-3px)] grid-cols-1 md:mt-[65px] md:min-h-[524px] md:grid-cols-[0.98fr_1.01fr_0.98fr] md:grid-rows-[repeat(2,minmax(262px,1fr))]">
+        <div className="relative ml-[3px] mt-14 grid w-[calc(100%-3px)] grid-cols-1 md:mt-[65px] md:min-h-[524px] md:grid-cols-[minmax(0,0.98fr)_minmax(0,1.01fr)_minmax(0,0.98fr)] md:grid-rows-[repeat(2,minmax(262px,1fr))] max-md:mt-8">
           <Image
             src="/images/services-grid.svg"
             alt=""
@@ -95,20 +100,20 @@ export default function ServicesSection() {
             return (
               <article
                 key={title}
-                className={`relative z-[1] min-h-[230px] border-b border-mint/80 px-6 py-8 md:border-0 md:pb-1 md:pt-1 ${columnPadding} ${isBottomRow ? "md:pt-14" : ""} ${featured ? "min-h-[230px] rounded-lg bg-deep-teal px-6 py-7 md:mb-[31px] md:ml-[27px] md:mr-[34px] md:mt-0 md:self-start md:px-10 md:pb-7 md:pt-[26px]" : ""}`}
+                className={`relative z-[1] min-h-[230px] border-b border-mint/80 px-6 py-8 md:border-0 md:pb-1 md:pt-1 ${columnPadding} ${isBottomRow ? "md:pt-14" : ""} max-md:min-h-0 max-md:border-0 max-md:px-3 max-md:py-7 ${featured ? "min-h-[230px] rounded-lg bg-deep-teal px-6 py-7 md:mb-[31px] md:ml-[27px] md:mr-[34px] md:mt-0 md:self-start md:px-10 md:pb-7 md:pt-[26px] max-md:min-h-0 max-md:rounded-none max-md:bg-transparent max-md:px-3 max-md:py-7" : ""}`}
               >
                 <Icon
                   aria-hidden="true"
                   className={`size-10 shrink-0 text-mint ${featured ? "md:size-[41px]" : ""}`}
                 />
-                <div className="mt-7 max-w-[320px]">
+                <div className="mt-7 max-w-[320px] max-md:mt-5">
                   <h3
-                    className={`font-body text-[28px] font-medium leading-[1.14] tracking-[-0.05em] ${featured ? "text-paper" : "text-ink"}`}
+                    className={`font-body text-[28px] font-medium leading-[1.14] tracking-[-0.05em] max-md:text-[26px] ${featured ? "text-paper max-md:text-ink" : "text-ink"}`}
                   >
                     {title}
                   </h3>
                   <p
-                    className={`mt-3 font-body text-base leading-[1.3] tracking-[-0.04em] ${featured ? "text-paper" : "text-ink-muted"}`}
+                    className={`mt-3 font-body text-base leading-[1.3] tracking-[-0.04em] max-md:mt-2 max-md:text-[17px] max-md:leading-[1.4] ${featured ? "text-paper max-md:text-ink-muted" : "text-ink-muted"}`}
                   >
                     {description}
                   </p>
