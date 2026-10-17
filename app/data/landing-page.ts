@@ -96,13 +96,6 @@ export const projects: {
     categoryLabel: "Energy company Branding",
     summary: "Sustainable power servicing & product",
   },
-  {
-    title: "Lazy Yute",
-    category: "Branding & Design",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-qXVisxhoAzMISWH3a5eMc8K2mBfn3N.png",
-    imageAlt: "Lifestyle product campaign image used for the Lazy Yute case study.",
-    summary: "Luxury street-wear brand",
-  },
 ];
 
 export const testimonials = [
