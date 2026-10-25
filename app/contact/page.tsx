@@ -17,6 +17,8 @@ export default function ContactPage() {
     <>
       <main>
         <ContactHeroSection />
+                        <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+
         <section
           id="start-project"
           aria-labelledby="contact-form-title"
@@ -72,7 +74,9 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
+                      <div className="h-7.5 mb-7.5 w-full hidden lg:block bg-black"></div>
       </main>
+
       <SiteFooter />
     </>
   );

@@ -11,7 +11,7 @@ import {
 import ArrowRightDark from "../assets/icons/arrow-right-dark.svg";
 import ArrowRightLight from "../assets/icons/arrow-right-light.svg";
 
-const projectIntervalMs = 2000;
+const projectIntervalMs = 3500;
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 const mobilePresentationQuery = "(max-width: 767px)";
 
@@ -48,7 +48,8 @@ export default function FeaturedWorksSection() {
   const [activeCategory, setActiveCategory] = useState<ProjectCategory>(
     "Branding & Design",
   );
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0); // for desktop 1-by-1
+  const [mobileStep, setMobileStep] = useState(0); // for mobile 2-at-a-go
   const [sequenceStarted, setSequenceStarted] = useState(false);
   const [sequenceComplete, setSequenceComplete] = useState(false);
   const [loadedProjectImages, setLoadedProjectImages] = useState<Set<string>>(
@@ -57,6 +58,7 @@ export default function FeaturedWorksSection() {
   const [failedProjectImages, setFailedProjectImages] = useState<Set<string>>(
     () => new Set(),
   );
+
   const prefersReducedMotion = useSyncExternalStore(
     subscribeToMotionPreference,
     getReducedMotionPreference,
@@ -67,35 +69,53 @@ export default function FeaturedWorksSection() {
     getMobilePresentation,
     getServerMobilePresentation,
   );
-  const visibleProjects = projects.filter(
-    (project) => project.category === activeCategory,
-  );
+
+  const animationProjects = projects.filter((p) => p.featuredInAnimation);
+
+  // Group into pairs for mobile "two at a go"
+  const mobilePairs: (typeof projects)[] = [];
+  for (let i = 0; i < animationProjects.length; i += 2) {
+    mobilePairs.push(animationProjects.slice(i, i + 2));
+  }
+  const currentMobilePair = mobilePairs[mobileStep] || [];
+
+  const visibleProjects =
+    sequenceStarted && !sequenceComplete && !isMobilePresentation
+      ? animationProjects
+      : projects.filter(
+          (project) =>
+            project.category === activeCategory ||
+            project.additionalCategories?.includes(activeCategory),
+        );
+
   const activeProject = visibleProjects[activeIndex];
   const activeProjectImageReady = activeProject
     ? loadedProjectImages.has(activeProject.image) ||
       failedProjectImages.has(activeProject.image)
     : false;
 
+  // Trigger on-scroll animation sequence for BOTH desktop and mobile
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || visibleProjects.length === 0) return;
-
-    if (isMobilePresentation || prefersReducedMotion) return;
+    if (!section || visibleProjects.length === 0 || prefersReducedMotion || sequenceComplete) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        section.scrollIntoView({ behavior: "instant", block: "start" });
-        section.focus({ preventScroll: true });
+        section.scrollIntoView({ behavior: isMobilePresentation ? "smooth" : "instant", block: "start" });
+        if (!isMobilePresentation) {
+          section.focus({ preventScroll: true });
+        }
         setSequenceStarted(true);
         observer.disconnect();
       },
-      { threshold: 0.25 },
+      { threshold: 0.15 },
     );
     observer.observe(section);
     return () => observer.disconnect();
-  }, [activeCategory, isMobilePresentation, prefersReducedMotion, visibleProjects.length]);
+  }, [isMobilePresentation, prefersReducedMotion, sequenceComplete, visibleProjects.length]);
 
+  // Desktop step advancement
   useEffect(() => {
     if (
       isMobilePresentation ||
@@ -126,14 +146,45 @@ export default function FeaturedWorksSection() {
     visibleProjects.length,
   ]);
 
+  // Mobile step advancement: two at a go
+  useEffect(() => {
+    if (
+      !isMobilePresentation ||
+      !sequenceStarted ||
+      sequenceComplete ||
+      prefersReducedMotion
+    ) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (mobileStep >= mobilePairs.length - 1) {
+        setSequenceComplete(true);
+        return;
+      }
+      setMobileStep((step) => step + 1);
+    }, projectIntervalMs);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    isMobilePresentation,
+    mobilePairs.length,
+    mobileStep,
+    prefersReducedMotion,
+    sequenceComplete,
+    sequenceStarted,
+  ]);
+
+  // Scroll lock for BOTH desktop and mobile during presentation
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || isMobilePresentation) return;
+    if (!section || !sequenceStarted || sequenceComplete) return;
 
     const preventScrollWhilePresenting = (event: WheelEvent | TouchEvent) => {
       if (!sequenceStarted || sequenceComplete) return;
       event.preventDefault();
     };
+
     const preventKeyboardScroll = (event: KeyboardEvent) => {
       if (!sequenceStarted || sequenceComplete) return;
       if (event.key === "Escape") {
@@ -162,15 +213,12 @@ export default function FeaturedWorksSection() {
       document.removeEventListener("touchmove", preventScrollWhilePresenting);
       window.removeEventListener("keydown", preventKeyboardScroll);
     };
-  }, [isMobilePresentation, sequenceComplete, sequenceStarted]);
+  }, [sequenceComplete, sequenceStarted]);
 
   function selectCategory(category: ProjectCategory) {
     setActiveCategory(category);
     setActiveIndex(0);
-    const matchingCount = projects.filter(
-      (project) => project.category === category,
-    ).length;
-    setSequenceComplete(matchingCount === 0);
+    setSequenceComplete(true);
     setSequenceStarted(false);
   }
 
@@ -194,9 +242,10 @@ export default function FeaturedWorksSection() {
   if (isMobilePresentation) {
     return (
       <section
+        ref={sectionRef}
         id="work"
         aria-labelledby="work-title"
-        className="bg-paper px-5 pb-12 pt-10 text-ink"
+        className="scroll-mt-[90px] bg-paper px-5 pb-12 pt-10 text-ink"
       >
         <div className="mx-auto max-w-[1200px]">
           <p className="font-body text-base leading-5 tracking-[-0.04em] text-ink-muted">
@@ -204,7 +253,7 @@ export default function FeaturedWorksSection() {
           </p>
           <h2
             id="work-title"
-            className="mt-4 max-w-[370px] font-display text-[clamp(34px,9vw,44px)] leading-[1.04] tracking-[-0.07em]"
+            className="mt-4 max-w-[380px] font-display text-[clamp(34px,9vw,44px)] leading-[1.04] tracking-[-0.07em]"
           >
             <span>Built for Impact, </span>
             <span className="text-ink-muted">Designed with purpose</span>
@@ -213,7 +262,7 @@ export default function FeaturedWorksSection() {
           <div
             role="group"
             aria-label="Filter projects by category"
-            className="mt-7 flex flex-wrap items-center gap-x-1 gap-y-2"
+            className="mt-7 -mx-5 flex flex-nowrap items-center gap-2 overflow-x-auto px-5 pb-2 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {projectCategories.map((category) => {
               const selected = category === activeCategory;
@@ -223,7 +272,7 @@ export default function FeaturedWorksSection() {
                   type="button"
                   aria-pressed={selected}
                   onClick={() => selectCategory(category)}
-                  className={`min-h-11 rounded-sm px-3 font-body text-[13px] tracking-[-0.035em] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint ${selected ? "bg-mint text-paper" : "text-ink hover:bg-mint/10"}`}
+                  className={`min-h-11 shrink-0 whitespace-nowrap rounded-sm px-4 font-body text-[13px] tracking-[-0.035em] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint ${selected ? "bg-mint text-paper font-medium" : "text-ink hover:bg-mint/10"}`}
                 >
                   {category}
                 </button>
@@ -231,57 +280,151 @@ export default function FeaturedWorksSection() {
             })}
           </div>
 
-          <a
-            href="#all-projects-mobile"
-            className="group mt-4 inline-flex min-h-11 items-center gap-2 font-action text-base tracking-[-0.04em] underline underline-offset-4 transition-colors hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint"
-          >
-            <span>View all projects</span>
-            <ArrowRightDark
-              aria-hidden="true"
-              className="size-6 transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </a>
+          {/* Right-aligned "View all projects ->" on mobile */}
+          <div className="mt-4 flex justify-end">
+            <a
+              href="#all-projects-mobile"
+              className="group inline-flex min-h-11 items-center gap-2 font-action text-base tracking-[-0.04em] underline underline-offset-4 transition-colors hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint"
+            >
+              <span>View all projects</span>
+              <ArrowRightDark
+                aria-hidden="true"
+                className="size-5 transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </a>
+          </div>
 
-          <div
-            id="all-projects-mobile"
-            aria-label="Featured case studies"
-            className="mt-5 flex flex-col gap-4"
-          >
-            {visibleProjects.length > 0 ? (
-              visibleProjects.map((project, index) => (
-                <article
-                  key={project.title}
-                  className="overflow-hidden rounded-xl bg-ink"
+          {/* Mobile animation: two at a go with pause lock */}
+          {sequenceStarted && !sequenceComplete ? (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between rounded-lg bg-mint/10 px-3.5 py-2 text-xs text-ink">
+                <span className="font-medium text-mint">
+                  Featured preview ({mobileStep + 1} of {mobilePairs.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={skipPresentation}
+                  className="font-action text-xs underline underline-offset-2 text-ink hover:text-mint"
                 >
-                  <a
-                    href={`mailto:cd.jeko.co@gmail.com?subject=${encodeURIComponent(`Request ${project.title} case study`)}`}
-                    aria-label={`Ask JEKO about the ${project.title} case study`}
-                    className="block focus-visible:outline-2 focus-visible:outline-offset-[-5px] focus-visible:outline-mint"
+                  View all projects ↓
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3.5 animate-[fade-up_350ms_ease-out_both]">
+                {currentMobilePair.map((project) => (
+                  <article
+                    key={project.title}
+                    className="group relative aspect-[1.58/1] w-full overflow-hidden rounded-xl bg-ink shadow-md"
                   >
                     <Image
                       src={project.image}
                       alt={project.imageAlt}
-                      width={1200}
-                      height={600}
+                      fill
+                      sizes="(max-width: 767px) 100vw, 600px"
+                      priority
+                      className="object-cover"
+                    />
+
+                    {/* Dark teal overlay card - it is there, does not animate from down */}
+                    <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-lg bg-deep-teal p-3.5 text-paper">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-lg font-semibold leading-tight tracking-[-0.04em] text-paper">
+                          {project.title}
+                        </h3>
+                        <p className="mt-0.5 line-clamp-1 font-body text-xs leading-snug tracking-[-0.02em] text-paper/85">
+                          {project.summary}
+                        </p>
+                      </div>
+
+                      <a
+                        href={`mailto:cd.jeko.co@gmail.com?subject=${encodeURIComponent(
+                          `Request ${project.title} case study`,
+                        )}`}
+                        className="group/link inline-flex shrink-0 items-center gap-1 font-action text-xs underline underline-offset-4 text-paper"
+                      >
+                        <span className="whitespace-nowrap">See Case study</span>
+                        <ArrowRightLight
+                          aria-hidden="true"
+                          className="size-3.5 shrink-0"
+                        />
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-center gap-2 pt-1">
+                {mobilePairs.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`size-2 rounded-full transition-colors ${
+                      i === mobileStep ? "bg-mint" : "bg-ink/20"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Complete mobile list with overlay sitting in place */
+            <div
+              id="all-projects-mobile"
+              aria-label="Featured case studies"
+              className="mt-5 flex flex-col gap-4"
+            >
+              {visibleProjects.length > 0 ? (
+                visibleProjects.map((project, index) => (
+                  <article
+                    key={project.title}
+                    className="group relative aspect-[1.5/1] w-full overflow-hidden rounded-xl bg-ink shadow-md"
+                  >
+                    <Image
+                      src={project.image}
+                      alt={project.imageAlt}
+                      fill
                       sizes="(max-width: 767px) calc(100vw - 40px), 1200px"
                       priority={index === 0}
-                      unoptimized={project.image.endsWith(".svg")}
-                      className="aspect-[2/1] h-auto w-full object-cover"
+                      className="object-cover"
                     />
-                  </a>
-                </article>
-              ))
-            ) : (
-              <p className="py-6 font-body text-base leading-relaxed text-ink-muted">
-                More work in this discipline is on its way.
-              </p>
-            )}
-          </div>
+
+                    {/* Overlay card - it is there, does not animate from down */}
+                    <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-lg bg-deep-teal p-3.5 text-paper">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-lg font-semibold leading-tight tracking-[-0.04em] text-paper sm:text-xl">
+                          {project.title}
+                        </h3>
+                        <p className="mt-0.5 line-clamp-1 font-body text-xs leading-snug tracking-[-0.02em] text-paper/85 sm:text-sm">
+                          {project.summary}
+                        </p>
+                      </div>
+
+                      <a
+                        href={`mailto:cd.jeko.co@gmail.com?subject=${encodeURIComponent(
+                          `Request ${project.title} case study`,
+                        )}`}
+                        className="group/link inline-flex shrink-0 items-center gap-1 font-action text-xs underline underline-offset-4 text-paper sm:text-sm"
+                      >
+                        <span className="whitespace-nowrap">See Case study</span>
+                        <ArrowRightLight
+                          aria-hidden="true"
+                          className="size-3.5 shrink-0"
+                        />
+                      </a>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="py-6 font-body text-base leading-relaxed text-ink-muted">
+                  More work in this discipline is on its way.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
     );
   }
 
+  // Desktop view
   return (
     <section
       ref={sectionRef}
@@ -308,7 +451,7 @@ export default function FeaturedWorksSection() {
             <div
               role="group"
               aria-label="Filter projects by category"
-              className="flex flex-wrap items-center gap-1"
+              className="flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto pb-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:flex-wrap"
             >
               {projectCategories.map((category) => {
                 const selected = category === activeCategory;
@@ -318,7 +461,7 @@ export default function FeaturedWorksSection() {
                     type="button"
                     aria-pressed={selected}
                     onClick={() => selectCategory(category)}
-                    className={`min-h-[40px] rounded-sm px-4 font-body text-sm tracking-[-0.04em] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint sm:min-h-[52px] sm:text-base ${selected ? "bg-mint text-paper" : "text-ink hover:bg-mint hover:text-paper"}`}
+                    className={`min-h-[40px] shrink-0 whitespace-nowrap rounded-sm px-4 font-body text-sm tracking-[-0.04em] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint sm:min-h-[52px] sm:text-base ${selected ? "bg-mint text-paper font-medium" : "text-ink hover:bg-mint hover:text-paper"}`}
                   >
                     {category}
                   </button>
@@ -422,7 +565,7 @@ export default function FeaturedWorksSection() {
             <p className="mr-auto font-body text-sm text-ink-muted" aria-live="off">
               {sequenceComplete
                 ? "Case studies"
-                : `Project ${activeIndex + 1} of ${visibleProjects.length} · changes every 2 seconds`}
+                : `Project ${activeIndex + 1} of ${visibleProjects.length} · changes every 3.5 seconds`}
             </p>
             {!sequenceComplete && (
               <button

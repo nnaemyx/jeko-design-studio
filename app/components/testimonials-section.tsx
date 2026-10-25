@@ -15,7 +15,7 @@ import ArrowRightDark from "../assets/icons/arrow-right-dark.svg";
 
 const desktopQuery = "(min-width: 768px)";
 const mobileQuery = "(max-width: 767px)";
-const autoplayIntervalMs = 2000;
+const autoplayIntervalMs = 7000;
 
 function subscribeToMobileViewport(callback: () => void) {
   const mediaQuery = window.matchMedia(mobileQuery);

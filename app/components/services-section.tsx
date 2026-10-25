@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 
 import { services } from "../data/landing-page";
 import { scrollRevealClassName } from "../lib/tailwind-classes";
@@ -10,6 +11,8 @@ import { ArrowTextLink, ProjectCta } from "./ui/action-links";
 const projectEmail = "/contact";
 
 export default function ServicesSection() {
+  const [activeServiceIndex, setActiveServiceIndex] = useState<number>(0);
+
   return (
     <section
       id="services"
@@ -77,48 +80,81 @@ export default function ServicesSection() {
           </p>
         </div>
 
-        <div className="relative ml-[3px] mt-14 grid w-[calc(100%-3px)] grid-cols-1 md:mt-[65px] md:min-h-[524px] md:grid-cols-[minmax(0,0.98fr)_minmax(0,1.01fr)_minmax(0,0.98fr)] md:grid-rows-[repeat(2,minmax(262px,1fr))] max-md:mt-8">
-          <Image
-            src="/images/services-grid.svg"
-            alt=""
-            aria-hidden="true"
-            width={1197}
-            height={524}
-            className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
-          />
-          {services.map(({ title, description, icon: Icon, featured }, index) => {
+        {/*
+          Services Grid Container:
+          - Desktop: 3 columns x 2 rows with clear vertical & horizontal green dividing borders.
+          - Mobile: Single column with persistent green horizontal dividing borders below each item,
+            even when the card is hovered/active!
+        */}
+        <div className="relative mt-14 grid w-full grid-cols-1 md:mt-[65px] md:min-h-[524px] md:grid-cols-3 md:grid-rows-2 max-md:mt-8">
+          {services.map(({ title, description, icon: Icon }, index) => {
+            const isActive = activeServiceIndex === index;
             const columnIndex = index % 3;
-            const isBottomRow = index >= services.length - 3;
-            const columnPadding = featured
-              ? ""
-              : columnIndex === 0
-                ? "md:pl-[31px]"
-                : columnIndex === 1
-                  ? "md:pl-[47px]"
-                  : "md:pl-[54px]";
+            const isTopRow = index < 3;
+            const isLastMobileItem = index === services.length - 1;
+
+            // Desktop border lines:
+            // Top row items have border-b (horizontal green line).
+            // First two columns have border-r (vertical green lines).
+            const desktopBorders = `${isTopRow ? "md:border-b md:border-mint/40" : ""} ${
+              columnIndex < 2 ? "md:border-r md:border-mint/40" : ""
+            }`;
+
+            // Mobile border line: persistent green horizontal line on every item (except last)
+            const mobileBorder = !isLastMobileItem
+              ? "border-b border-mint/40 pb-5 mb-5 md:border-b-0 md:pb-0 md:mb-0"
+              : "pb-2 mb-2 md:pb-0 md:mb-0";
+
+            // Spacing to keep the green hover card 38px away from the borders:
+            const cellMargin = isTopRow
+              ? "md:mb-[38px] md:mt-2"
+              : "md:mt-[38px] md:mb-2";
+
+            const columnMargin = columnIndex === 0
+              ? "md:mr-[38px] md:ml-0"
+              : columnIndex === 1
+                ? "md:mx-[19px]"
+                : "md:ml-[38px] md:mr-0";
 
             return (
-              <article
+              <div
                 key={title}
-                className={`relative z-[1] min-h-[230px] border-b border-mint/80 px-6 py-8 md:border-0 md:pb-1 md:pt-1 ${columnPadding} ${isBottomRow ? "md:pt-14" : ""} max-md:min-h-0 max-md:border-0 max-md:px-3 max-md:py-7 ${featured ? "min-h-[230px] rounded-lg bg-deep-teal px-6 py-7 md:mb-[31px] md:ml-[27px] md:mr-[34px] md:mt-0 md:self-start md:px-10 md:pb-7 md:pt-[26px] max-md:min-h-0 max-md:rounded-none max-md:bg-transparent max-md:px-3 max-md:py-7" : ""}`}
+                className={`relative flex flex-col justify-center ${desktopBorders} ${mobileBorder}`}
               >
-                <Icon
-                  aria-hidden="true"
-                  className={`size-10 shrink-0 text-mint ${featured ? "md:size-[41px]" : ""}`}
-                />
-                <div className="mt-7 max-w-[320px] max-md:mt-5">
-                  <h3
-                    className={`font-body text-[28px] font-medium leading-[1.14] tracking-[-0.05em] max-md:text-[26px] ${featured ? "text-paper max-md:text-ink" : "text-ink"}`}
-                  >
-                    {title}
-                  </h3>
-                  <p
-                    className={`mt-3 font-body text-base leading-[1.3] tracking-[-0.04em] max-md:mt-2 max-md:text-[17px] max-md:leading-[1.4] ${featured ? "text-paper max-md:text-ink-muted" : "text-ink-muted"}`}
-                  >
-                    {description}
-                  </p>
-                </div>
-              </article>
+                <article
+                  onMouseEnter={() => setActiveServiceIndex(index)}
+                  onFocus={() => setActiveServiceIndex(index)}
+                  onClick={() => setActiveServiceIndex(index)}
+                  className={`flex flex-1 cursor-pointer flex-col rounded-2xl p-6 transition-all duration-300 sm:p-7 md:p-6 lg:p-7 ${cellMargin} ${columnMargin} ${
+                    isActive
+                      ? "bg-deep-teal text-paper shadow-md"
+                      : "bg-transparent text-ink hover:bg-deep-teal/5"
+                  }`}
+                >
+                  <Icon
+                    aria-hidden="true"
+                    className={`size-10 shrink-0 text-mint transition-transform duration-300 ${
+                      isActive ? "scale-105" : ""
+                    }`}
+                  />
+                  <div className="mt-6 max-w-[320px]">
+                    <h3
+                      className={`font-body text-[24px] font-medium leading-[1.18] tracking-[-0.04em] transition-colors duration-200 sm:text-[26px] ${
+                        isActive ? "text-paper" : "text-ink"
+                      }`}
+                    >
+                      {title}
+                    </h3>
+                    <p
+                      className={`mt-2.5 font-body text-sm leading-[1.4] tracking-[-0.02em] transition-colors duration-200 ${
+                        isActive ? "text-paper/90" : "text-ink-muted"
+                      }`}
+                    >
+                      {description}
+                    </p>
+                  </div>
+                </article>
+              </div>
             );
           })}
         </div>

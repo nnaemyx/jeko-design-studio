@@ -13,6 +13,7 @@ export default function Home() {
         <HeroSection />
         <ServicesSection />
         <FeaturedWorksSection />
+        <div className="h-7.5 w-full hidden lg:block bg-black"></div>
         <PhilosophySection />
         <TestimonialsSection />
         <ContactCtaSection />

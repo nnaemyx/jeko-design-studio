@@ -65,10 +65,11 @@
 
 @layer components {
   .contact-hero-grid {
-    background-image: url("/images/contact-grid-vertical.svg"),
-      url("/images/contact-grid-horizontal.svg");
-    background-position: center;
-    background-size: cover, cover;
-    background-repeat: no-repeat;
+    background-color: #fdfffc;
+    background-image:
+      linear-gradient(to right, rgba(2, 4, 15, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(2, 4, 15, 0.08) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: center top;
   }
 }

@@ -64,37 +64,68 @@ export const projectCategories = [
 
 export type ProjectCategory = (typeof projectCategories)[number];
 
-export const projects: {
+export type Project = {
   title: string;
   category: ProjectCategory;
+  additionalCategories?: ProjectCategory[];
   image: string;
   imageAlt: string;
   categoryLabel?: string;
   summary?: string;
-}[] = [
+  featuredInAnimation?: boolean;
+};
+
+export const projects: Project[] = [
   {
     title: "CedarRise",
     category: "Branding & Design",
-    image: "/images/case-study-cedarrise.svg",
+    image: "/images/cedarrise-clean-mockup.png",
     imageAlt:
-      "CedarRise branding case study: a yellow outdoor billboard with a botanical identity and a dark teal project panel.",
+      "CedarRise branding case study: outdoor billboard with a botanical identity.",
+    categoryLabel: "NGO Branding",
+    summary: "A commitment to growth and progress",
+    featuredInAnimation: true,
   },
   {
     title: "SBT Apartments",
     category: "Branding & Design",
-    image: "/images/case-study-sbt-apartments.svg",
+    image: "/images/sbt-apartments-mockup.png",
     imageAlt:
       "SBT Apartments hospitality brand case study shown over a warm, modern apartment interior.",
+    categoryLabel: "Hospitality Branding",
+    summary: "Where luxury and comfort co-exists",
+    featuredInAnimation: true,
   },
   {
     title: "Kacxs Energy",
     category: "Branding & Design",
-    image:
-      "https://images.unsplash.com/photo-1644902027522-c02b19426d7b?auto=format&fit=crop&w=2400&q=85",
+    image: "/images/kacxs-energy-exact.jpg",
     imageAlt:
-      "Yellow energy service vehicle in an autumn landscape, sourced from Unsplash by mugi jo.",
+      "Yellow Kacxs Energy commercial truck with solar panel installation in an autumn landscape.",
     categoryLabel: "Energy company Branding",
     summary: "Sustainable power servicing & product",
+    featuredInAnimation: true,
+  },
+  {
+    title: "Lazy Yute",
+    category: "Branding & Design",
+    image: "/images/lazy-yute-photo.png",
+    imageAlt:
+      "Lazy Yute luxury streetwear brand apparel mockup showing a model in a branded white tee.",
+    categoryLabel: "Streetwear Branding",
+    summary: "Luxury street-wear brand",
+    featuredInAnimation: true,
+  },
+  {
+    title: "Phoebe Beauty",
+    category: "Marketing & Social media",
+    additionalCategories: ["Branding & Design"],
+    image: "/images/phoebe-beauty-exact.png",
+    imageAlt:
+      "Phoebe Beauty skincare UGC content creator holding cosmetics with under-eye patches.",
+    categoryLabel: "UGC for audience building",
+    summary: "created retentive contents in beauty niche targeting woman, using UGC.",
+    featuredInAnimation: true,
   },
 ];
 
@@ -123,8 +154,8 @@ export const testimonials = [
 
 export const footerLinks = {
   explore: [
-    { label: "Work", href: "/#work" },
-    { label: "Services", href: "/#services" },
+    { label: "Work", href: "/work" },
+    { label: "Services", href: "/services" },
     { label: "Approach", href: "/#approach" },
     { label: "About us", href: "/about" },
     { label: "Contact", href: "/contact" },

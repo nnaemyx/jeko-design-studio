@@ -44,7 +44,7 @@ export function ProjectCta({
   return (
     <Link
       href={href}
-      className="group inline-flex min-h-[62px] min-w-[196px] items-center justify-center gap-2.5 rounded-sm bg-amber px-5 font-action text-xl tracking-[-0.04em] text-paper transition-colors duration-300 hover:bg-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint"
+      className="group inline-flex min-h-[62px] min-w-[196px] items-center justify-center gap-2.5 rounded-sm bg-amber px-5 font-action text-xl tracking-[-0.04em] text-paper transition-colors duration-300 hover:bg-amber/90 focus-visible:outline-2 focus-visible:outline-offset-4"
     >
       <span>{children}</span>
       <ArrowUpRight

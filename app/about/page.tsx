@@ -19,19 +19,27 @@ export default function AboutPage() {
       <main>
         <section
           aria-labelledby="about-page-title"
-          className="relative isolate mx-5 mt-5 flex h-[480px] scroll-mt-[110px] items-center justify-center overflow-hidden rounded-2xl bg-ink bg-[url('/images/about-hero-grid.svg')] bg-center bg-cover bg-no-repeat text-paper max-md:h-[420px]"
+          className="relative isolate mx-5 mt-5 flex h-[377px] scroll-mt-[110px] items-center justify-center overflow-hidden rounded-2xl bg-ink bg-[url('/images/about-hero-grid.svg')] bg-center bg-cover bg-no-repeat text-paper max-md:mx-2 max-md:mt-2.5 max-md:h-[400px] max-md:rounded-xl max-md:pt-12"
         >
           <h1
             id="about-page-title"
-            className="font-display text-[clamp(56px,6.67vw,96px)] leading-none tracking-[-0.08em]"
+            className="font-display text-[clamp(77.87px,6.67vw,96px)] leading-none tracking-[-0.08em]"
           >
             About Us
           </h1>
         </section>
         <AboutStory />
+                <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+
         <AboutStatement />
+                <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+
         <AboutTeamSection />
+                <div className="h-7.5 w-full mb-[20px] hidden lg:block bg-black"></div>
+
         <AboutValuesCarousel />
+                <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+
         <AboutProjectSection />
       </main>
       <SiteFooter />

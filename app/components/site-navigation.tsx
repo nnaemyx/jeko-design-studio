@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 const navigationLinks = [
   { label: "Home", href: "/", page: "home" },
   { label: "About us", href: "/about", page: "about" },
-  { label: "Work & Services", href: "/#services", page: "work" },
+  { label: "Work & Services", href: "/work", page: "work" },
   { label: "Contact", href: "/contact", page: "contact" },
 ] as const;
 
@@ -18,34 +18,50 @@ export default function SiteNavigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+
   const currentPage = pathname.startsWith("/about")
     ? "about"
     : pathname.startsWith("/contact")
       ? "contact"
-      : "home";
+      : pathname.startsWith("/work") || pathname.startsWith("/services")
+        ? "work"
+        : "home";
+
+  const isOnDarkHero =
+    (currentPage === "home" || currentPage === "about" || currentPage === "work") &&
+    !isScrolled;
+
+  // Requirement 1: Logo should not be there before scroll on landing page, only after scroll
+  const isLogoVisible = currentPage === "home" ? isScrolled : true;
+
+  // Pre-scroll: aligns with the hero card's mx-2 mt-2.5 on mobile so it nests cleanly inside the dark card.
+  // On scroll: full width, flush to top-0, zero margins/padding on outer wrapper.
+  const headerPosition = isScrolled
+    ? "fixed inset-x-0 top-0 z-[100] w-full rounded-none border-none bg-paper/95 px-0 shadow-sm backdrop-blur-md transition-all duration-300"
+    : "fixed inset-x-0 top-0 z-[100] w-full border-none bg-transparent px-0 transition-all duration-300 max-lg:top-2.5 max-lg:px-2";
+
   const headerTone = isScrolled
     ? "text-ink"
-    : currentPage === "home" || currentPage === "about"
+    : isOnDarkHero
       ? "text-paper"
       : "text-ink";
-  const headerPosition = isScrolled
-    ? "left-5 right-5 top-3 rounded-xl bg-paper/[94%] px-0 shadow-[0_12px_32px_rgb(2_4_15/10%)] backdrop-blur-[12px] max-lg:left-2 max-lg:right-2 max-lg:top-2"
-    : currentPage === "home"
-      ? "inset-x-0 top-5 px-5 max-lg:top-[46px] max-lg:px-4"
-      : "inset-x-0 top-5 px-5 max-lg:top-2 max-lg:px-2";
+
+  // Pre-scroll: h-16 with px-4 inside the mobile hero card.
+  // On scroll: compact h-14 sticky bar with py-0.
   const innerLayout = isScrolled
-    ? "h-[72px] max-lg:h-11"
-    : "h-[152px] max-lg:h-11";
+    ? "h-[76px] max-lg:h-14 px-5 max-lg:px-4 py-0"
+    : "h-[100px] max-lg:h-16 px-6 lg:px-[clamp(24px,8vw,120px)] max-lg:px-4";
+
   const logoSrc = isScrolled || currentPage === "contact"
     ? "/images/jeko-dark-logo.svg"
     : "/images/jeko-footer-logo.svg";
-  const actionColor = currentPage === "home" && !isScrolled
-    ? "bg-amber"
-    : "bg-mint";
+
+  // Requirement 3: The Book a call button on scroll should NOT change
+  const actionColor = "bg-amber text-paper hover:bg-amber/90";
 
   useEffect(() => {
     const updateScrollState = () => {
-      const nextIsScrolled = window.scrollY > 72;
+      const nextIsScrolled = window.scrollY > 40;
       setIsScrolled(nextIsScrolled);
       if (nextIsScrolled) setIsMenuOpen(false);
     };
@@ -56,13 +72,12 @@ export default function SiteNavigation() {
 
   useEffect(() => {
     if (!isMenuOpen) return;
-
-    const closeOnHistoryNavigation = () => setIsMenuOpen(false);
-    window.addEventListener("popstate", closeOnHistoryNavigation);
-    window.addEventListener("hashchange", closeOnHistoryNavigation);
+    const closeOnNav = () => setIsMenuOpen(false);
+    window.addEventListener("popstate", closeOnNav);
+    window.addEventListener("hashchange", closeOnNav);
     return () => {
-      window.removeEventListener("popstate", closeOnHistoryNavigation);
-      window.removeEventListener("hashchange", closeOnHistoryNavigation);
+      window.removeEventListener("popstate", closeOnNav);
+      window.removeEventListener("hashchange", closeOnNav);
     };
   }, [isMenuOpen]);
 
@@ -92,32 +107,129 @@ export default function SiteNavigation() {
   return (
     <header
       ref={headerRef}
-      className={`fixed z-[100] transition-[background-color,box-shadow] duration-300 ${headerPosition} ${headerTone} ${currentPage === "home" ? (isScrolled ? "max-md:hidden" : "max-md:absolute") : ""}`}
+      className={`${headerPosition} ${headerTone}`}
       data-scrolled={isScrolled}
       data-page={currentPage}
     >
       <div
-        className={`mx-auto grid max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-[clamp(20px,8.33vw,120px)] transition-[height] duration-300 max-lg:grid-cols-[minmax(0,1fr)_44px_auto] max-lg:grid-rows-[44px] max-lg:gap-y-0 max-lg:px-2 ${innerLayout}`}
+        className={`mx-auto grid max-w-[1440px] items-center transition-[height,padding] duration-300
+          grid-cols-[1fr_auto_1fr]
+          max-lg:grid-cols-[minmax(0,1fr)_auto_auto] max-lg:gap-x-3
+          ${innerLayout}`}
       >
-        <Link
-          href="/"
-          aria-label="JEKO Design Studio home"
-          className={`col-start-1 row-start-1 justify-self-start ${currentPage === "home" && !isScrolled ? "max-lg:flex lg:hidden" : "flex"}`}
+        {/* Logo slot - hidden before scroll on home page */}
+        <div className="col-start-1 row-start-1 flex justify-self-start">
+          <Link
+            href="/"
+            aria-label="JEKO Design Studio home"
+            className={`transition-opacity duration-300 ${
+              isLogoVisible
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none invisible"
+            }`}
+          >
+            <Image
+              src={logoSrc}
+              alt="JEKO"
+              width={222}
+              height={50}
+              priority
+              className={`h-auto ${
+                currentPage === "home" && !isScrolled
+                  ? "w-[92px] lg:w-[clamp(84px,9.65vw,139px)]"
+                  : "w-[clamp(84px,9.65vw,139px)] max-lg:w-[84px]"
+              }`}
+            />
+          </Link>
+        </div>
+
+        {/* Desktop nav links */}
+        <nav
+          id="desktop-navigation-links"
+          aria-label="Desktop navigation"
+          className="col-start-2 row-start-1 hidden lg:flex lg:items-center lg:justify-center lg:gap-[34px] lg:whitespace-nowrap"
         >
-          <Image
-            src={logoSrc}
-            alt="JEKO"
-            width={222}
-            height={50}
-            priority
-            className={`h-auto ${currentPage === "home" ? "w-[92px] lg:w-[clamp(84px,9.65vw,139px)]" : "w-[clamp(84px,9.65vw,139px)] max-md:w-[60px]"}`}
-          />
+          {navigationLinks.map(({ label, href, page }) => {
+            const isCurrent = page === currentPage;
+            return (
+              <Link
+                key={label}
+                href={href}
+                aria-current={isCurrent ? "page" : undefined}
+                className={`flex min-h-12 items-center px-3 text-base font-light tracking-[-0.02em] transition-colors duration-200 hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-mint ${
+                  isCurrent ? "underline underline-offset-4 font-medium" : ""
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Desktop: Book a call CTA (amber, never changes on scroll) */}
+        <Link
+          href="/contact"
+          className={`col-start-3 row-start-1 hidden lg:inline-flex min-h-12 items-center justify-self-end rounded-sm px-5 py-0 font-action text-base tracking-[-0.04em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint ${actionColor}`}
+        >
+          Book a call
         </Link>
 
+        {/* Mobile: Book a call pill (col 2) */}
+        <Link
+          href="/contact"
+          className={`col-start-2 row-start-1 inline-flex lg:hidden min-h-10 items-center justify-center rounded-sm px-4 py-2 font-action text-sm font-medium tracking-[-0.03em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint ${actionColor}`}
+        >
+          Book a call
+        </Link>
+
+        {/* Mobile: Hamburger toggle button (col 3) */}
+        <button
+          ref={menuButtonRef}
+          type="button"
+          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isMenuOpen}
+          aria-controls="mobile-navigation-links"
+          onClick={() => setIsMenuOpen((open) => !open)}
+          className={`col-start-3 row-start-1 inline-flex size-10 items-center justify-center justify-self-end rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint lg:hidden ${
+            isOnDarkHero
+              ? "text-paper hover:text-mint"
+              : "text-ink hover:text-mint"
+          }`}
+        >
+          <span className="sr-only">{isMenuOpen ? "Close menu" : "Open menu"}</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="size-7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+          >
+            {isMenuOpen ? (
+              <>
+                <line x1="5" y1="5" x2="19" y2="19" />
+                <line x1="19" y1="5" x2="5" y2="19" />
+              </>
+            ) : (
+              <>
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+              </>
+            )}
+          </svg>
+        </button>
+
+        {/* Formal mobile dropdown menu */}
         <nav
-          id="main-navigation-links"
-          aria-label="Main navigation"
-          className={`lg:col-start-2 lg:row-start-1 lg:flex lg:items-center lg:justify-center lg:gap-[34px] lg:whitespace-nowrap max-lg:absolute max-lg:left-2 max-lg:right-2 max-lg:top-full max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-0 max-lg:rounded-xl max-lg:border max-lg:border-ink/10 max-lg:bg-paper max-lg:p-2 max-lg:text-ink max-lg:shadow-[0_12px_32px_rgb(2_4_15/10%)] ${isMenuOpen ? "max-lg:visible" : "max-lg:invisible"}`}
+          id="mobile-navigation-links"
+          aria-label="Mobile navigation"
+          className={`lg:hidden absolute left-4 right-4 top-[calc(100%+8px)] flex flex-col rounded-xl border border-ink/10 bg-paper p-3 text-ink shadow-[0_16px_36px_rgb(2_4_15/16%)] backdrop-blur-md transition-all duration-300 ${
+            isMenuOpen
+              ? "opacity-100 translate-y-0 pointer-events-auto visible"
+              : "opacity-0 -translate-y-2 pointer-events-none invisible"
+          }`}
         >
           {navigationLinks.map(({ label, href, page }) => {
             const isCurrent = page === currentPage;
@@ -127,32 +239,15 @@ export default function SiteNavigation() {
                 href={href}
                 aria-current={isCurrent ? "page" : undefined}
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex min-h-12 items-center px-3 text-base font-light tracking-[-0.02em] transition-colors duration-200 hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-mint max-lg:text-sm ${isCurrent ? "underline underline-offset-4" : ""}`}
+                className={`flex min-h-12 items-center rounded-lg px-4 text-base font-normal tracking-[-0.02em] transition-colors duration-200 hover:bg-ink/5 hover:text-mint focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-mint ${
+                  isCurrent ? "font-medium text-mint bg-mint/10" : "text-ink"
+                }`}
               >
                 {label}
               </Link>
             );
           })}
         </nav>
-
-        <Link
-          href="/contact"
-          className={`col-start-3 row-start-1 inline-flex min-h-12 items-center justify-self-end rounded-sm px-5 py-0 font-action text-base tracking-[-0.04em] text-paper transition-colors duration-300 hover:bg-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint ${currentPage === "home" ? "max-lg:hidden" : "max-lg:min-h-[38px] max-lg:px-2 max-lg:text-[clamp(9px,2.5vw,12px)]"} ${actionColor}`}
-        >
-          Book a call
-        </Link>
-
-        <button
-          ref={menuButtonRef}
-          type="button"
-          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={isMenuOpen}
-          aria-controls="main-navigation-links"
-          onClick={() => setIsMenuOpen((open) => !open)}
-          className="col-start-2 row-start-1 inline-flex size-11 items-center justify-center rounded-md bg-amber text-[28px] leading-none text-paper transition-colors hover:bg-amber/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint lg:hidden"
-        >
-          <span aria-hidden="true">{isMenuOpen ? "×" : "☰"}</span>
-        </button>
       </div>
     </header>
   );
