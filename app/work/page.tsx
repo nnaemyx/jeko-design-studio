@@ -18,6 +18,8 @@ export default function WorkPage() {
         <WorkHeroSection />
         <SelectedWorkSection />
                 <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+                                <div className="h-3.25 w-full lg:hidden block bg-black"></div>
+
 
         <WorkCtaSection />
       </main>
