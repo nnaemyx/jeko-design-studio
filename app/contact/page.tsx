@@ -18,6 +18,8 @@ export default function ContactPage() {
       <main>
         <ContactHeroSection />
                         <div className="h-7.5 w-full hidden lg:block bg-black"></div>
+                                                        <div className="h-8.5 w-full lg:hidden block bg-black"></div>
+
 
         <section
           id="start-project"
@@ -26,15 +28,20 @@ export default function ContactPage() {
         >
           <div className="mx-auto max-w-[1200px]">
             <div className="mx-auto max-w-[672px] text-center">
-              <p className="font-body text-[28px] leading-8 tracking-[-0.08em] text-paper/60 md:text-[32px]">
+              <p className="font-body text-[28px] hidden lg:block leading-8 tracking-[-0.08em] text-paper/60 md:text-[32px]">
                 Contact us
+              </p>
+               <p className="font-body text-[28px] lg:hidden leading-8 tracking-[-0.08em] text-paper/60 md:text-[32px]">
+                Start a project
               </p>
               <h2
                 id="contact-form-title"
                 className="mt-4 font-display text-[clamp(38px,4.45vw,64px)] leading-[1.02] tracking-[-0.08em]"
               >
-                Let us know <span className="text-paper/60">what</span>
+                Let us know <span className="text-paper/60">what </span>
                 <br className="hidden sm:block" />
+                                <br className="sm:hidden block" />
+
                 <span className="text-paper/60">you are</span> building
               </h2>
             </div>
